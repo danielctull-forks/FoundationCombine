@@ -2,20 +2,8 @@
 import Foundation
 import Combine
 
-extension Publisher {
-
-    public var accumulate: AnyPublisher<[Output], Failure> {
-        var values: [Output] = []
-        return self
-            .map {
-                values.append($0)
-                return values
-            }
-            .eraseToAnyPublisher()
-    }
-}
-
 extension Collection where Element: Publisher {
+
     /// Combine the array of publishers to give a single array of the `Zip ` of their outputs
     public var zip: AnyPublisher<[Element.Output], Element.Failure> {
 
@@ -23,7 +11,7 @@ extension Collection where Element: Publisher {
         var iteration = 1
 
         return self
-            .map { $0.accumulate }
+            .map { $0.scan(into: []) { $0.append($1) }}
             .combineLatest
             .compactMap { values -> [Element.Output]? in
 
